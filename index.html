@@ -182,6 +182,23 @@ button:disabled{opacity:.4}.die-face{background:linear-gradient(145deg,#fff8e7,#
 .shop-trade-btn:disabled{filter:grayscale(.6);box-shadow:none}
 .shop-info{max-width:720px;margin:13px auto 0;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;color:#d7e6f4;font-size:10px;text-align:center}
 .shop-info b{color:#f4d78a;font-family:Cinzel,serif}
+
+.shop-tabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:4px auto 14px;position:relative}
+.shop-tab{padding:10px 18px;border:2px solid #718aa5;border-radius:10px;background:linear-gradient(#304861,#172b40);color:#dcecff;font:800 11px Cinzel,serif;cursor:pointer;box-shadow:0 3px 0 #0a1726}
+.shop-tab.active{border-color:#f4d78a;color:#ffe7a6;background:linear-gradient(#58617d,#302d53);box-shadow:0 0 15px #f4d78a55,0 3px 0 #0a1726}
+.shop-drag-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:720px;margin:0 auto}
+.shop-drop{min-height:150px;border:2px dashed #91abc3;border-radius:14px;background:linear-gradient(145deg,#10243a,#1a3450);padding:14px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:.18s}
+.shop-drop.hot{border-color:#ffe17d;box-shadow:0 0 0 3px #ffdc6a33,0 0 22px #ffdc6a66;background:linear-gradient(145deg,#3a3c43,#1a3450)}
+.shop-drop strong{font:900 13px Cinzel,serif;color:#ffe5a0}.shop-drop small{font-size:11px;color:#c5d7e7}
+.shop-needed{font:900 25px Cinzel,serif;color:#fff1ad;text-shadow:0 0 12px #ffd75b;letter-spacing:.5px}
+.shop-resource.draggable{cursor:grab;user-select:none}.shop-resource.draggable:active{cursor:grabbing}.shop-resource.draggable.ready{border-color:#ffe17d;box-shadow:0 0 0 2px #ffdf72aa,0 0 20px #ffcf4d88,0 5px 0 #0a1726;animation:shopPulse 1.5s infinite}
+@keyframes shopPulse{50%{filter:brightness(1.3);transform:translateY(-2px)}}
+.shop-get-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.shop-get{border:2px solid #748da7;border-radius:10px;padding:8px 3px;background:#203951;color:#edf8ff;font-weight:800;cursor:pointer}.shop-get.active{border-color:#ffe17d;box-shadow:0 0 14px #ffe17d77;color:#ffe9a6}.shop-get span{display:block;font-size:22px}.shop-confirm{display:block;width:min(360px,100%);margin:14px auto 0;padding:13px;border:2px solid #c4a8ff;border-radius:9px;background:linear-gradient(#a77aff,#6742b2);color:white;font:900 12px Cinzel,serif}.shop-confirm:disabled{opacity:.4;filter:grayscale(.7)}
+.shop-player-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px}.shop-player-row select{padding:10px;border-radius:8px;min-width:160px}.shop-player-trade{max-width:720px;margin:0 auto;padding:14px;border:1px solid #8197ad;border-radius:14px;background:#10243a}
+.trade-alert{position:fixed;z-index:10001;left:50%;top:18px;transform:translateX(-50%);width:min(720px,94vw);padding:18px 22px;border:3px solid #ffe17d;border-radius:16px;background:linear-gradient(135deg,#172d45,#392e59);box-shadow:0 12px 40px #000b,0 0 28px #ffd45b88;text-align:center;color:#fff;display:none}
+.trade-alert.show{display:block;animation:tradeIn .3s ease-out}.trade-alert h2{font:900 clamp(18px,3vw,27px) Cinzel,serif;color:#ffe59a;margin:0 0 8px}.trade-alert p{margin:4px 0 12px;color:#e1edf8}.trade-alert button{margin:4px;padding:9px 16px;border-radius:8px;font-weight:900}.trade-alert .accept{background:linear-gradient(#5fd39a,#18885b);color:#fff}.trade-alert .decline{background:linear-gradient(#b7c6d6,#71859a);color:#14263a}
+@keyframes tradeIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:600px){.shop-drag-layout{grid-template-columns:1fr}.shop-get-grid{gap:4px}.shop-get{font-size:10px;padding:7px 1px}.shop-needed{font-size:22px}}
 @media(max-width:600px){
  .shop-overlay{padding:8px}.shop-panel{padding:20px 12px 16px;border-width:5px;max-height:95vh}
  .shop-head{margin:-20px auto 17px;min-height:72px;padding:12px 40px 10px}
@@ -252,16 +269,19 @@ button:disabled{opacity:.4}.die-face{background:linear-gradient(145deg,#fff8e7,#
 <div id="shopOverlay" class="shop-overlay" hidden onclick="if(event.target===this)closeShop()">
   <section class="shop-panel" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
     <header class="shop-head"><div><div class="shop-kicker">KADİFE TİCARET ODASI</div><h2 id="shopTitle">🏪 Kaynak Mağazası</h2><p>Kaynaklarını bankayla veya sahip olduğun liman avantajıyla takas et.</p></div><button class="shop-close" onclick="closeShop()" aria-label="Mağazayı kapat">✕</button></header>
-    <div class="shop-stock"><div class="shop-section-title">ENVANTERİN</div><div id="shopStock" class="shop-stock-grid"></div></div>
-    <div class="shop-trade-card"><div class="shop-section-title">TAKAS TEZGAHI</div>
-      <div class="shop-fields"><label>VERECEĞİN KAYNAK<select id="g1"></select></label><div class="shop-swap">⇄</div><label>ALACAĞIN KAYNAK<select id="g2"></select></label></div>
-      <div class="shop-rate" id="tradeRate">Banka oranı: 4:1</div>
-      <div class="shop-explain" id="shopExplain">Seçtiğin kaynağın takas oranı otomatik hesaplanır.</div>
-      <button class="shop-trade-btn" onclick="send({t:'trade',give:$('g1').value,get:$('g2').value})">Takas işlemini gerçekleştir <span>→</span></button>
+    <div class="shop-tabs"><button class="shop-tab active" data-tab="bank" onclick="setShopTab('bank')">🏦 BANKA</button><button class="shop-tab" data-tab="port" onclick="setShopTab('port')">⚓ LİMAN</button><button class="shop-tab" data-tab="player" onclick="setShopTab('player')">🤝 OYUNCU TAKASI</button></div>
+    <div class="shop-stock"><div class="shop-section-title">ENVANTERİN · SÜRÜKLEYİP BIRAK</div><div id="shopStock" class="shop-stock-grid"></div></div>
+    <div id="shopBankArea" class="shop-trade-card"><div class="shop-section-title">TAKAS TEZGAHI</div>
+      <div class="shop-drag-layout"><div id="shopGiveDrop" class="shop-drop" ondragover="shopDragOver(event)" ondragleave="shopDragLeave(event)" ondrop="shopDropGive(event)"><strong>BURAYA KAYNAK KARTINI BIRAK</strong><div id="shopGiveIcon" class="shop-needed">🪵</div><div id="shopNeed" class="shop-needed">4 KART GEREKLİ</div><small id="shopGiveName">Henüz kaynak seçilmedi</small></div>
+      <div class="shop-drop"><strong>ALACAĞIN KAYNAĞI SEÇ</strong><div class="shop-get-grid" id="shopGetGrid"></div><small>Bir kaynak simgesine dokunarak seç.</small></div></div>
+      <div class="shop-rate" id="tradeRate">Banka oranı: 4:1</div><div class="shop-explain" id="shopExplain">Elindeki kartlardan gerekli miktarı sürükle.</div>
+      <button id="shopBankConfirm" class="shop-confirm" onclick="confirmShopTrade()" disabled>TAKASI GERÇEKLEŞTİR →</button>
     </div>
+    <div id="shopPlayerArea" class="shop-player-trade" hidden><div class="shop-section-title">OYUNCUYA TAKAS TEKLİFİ GÖNDER</div><p class="shop-explain">Bir oyuncu seç, vereceğin ve isteyeceğin kaynakları belirle. Teklif karşı oyuncunun ekranında büyük bir bildirim olarak görünür.</p><div class="shop-player-row"><label>Oyuncu <select id="shopTarget"></select></label><label>Vereceğin <select id="shopPlayerGive"></select></label><label>İstediğin <select id="shopPlayerGet"></select></label></div><div class="shop-player-row"><label>Vereceğin adet <input id="shopGiveN" type="number" min="1" value="1" style="width:72px"></label><label>İstediğin adet <input id="shopGetN" type="number" min="1" value="1" style="width:72px"></label></div><button class="shop-confirm" onclick="sendPlayerTradeOffer()">📨 TAKAS TEKLİFİ GÖNDER</button><div id="shopOfferStatus" class="shop-explain"></div></div>
     <div class="shop-info"><b>⚓ Liman avantajı</b><span>Kaynak limanı: 2:1 · Genel liman: 3:1 · Limanın yoksa: 4:1</span></div>
   </section>
 </div>
+<div id="tradeAlert" class="trade-alert" role="alertdialog" aria-live="assertive"><h2>🤝 TAKAS İSTEĞİ VAR!</h2><p id="tradeAlertText"></p><button class="accept" id="tradeAccept">✓ TAKASI KABUL ET</button><button class="decline" id="tradeDecline">✕ REDDET</button></div>
 <small>Yol 🪵🧱 · Köy 🪵🧱🐑🌾 · Şehir 2🌾 3⛰️ · 7 gelince altın halkayla vurgulanan araziye tıkla · 10 puan kazanır · En uzun yol (5+) +2 puan</small><div id=log></div></div></div>
 <script>
 const RES=['wood','brick','sheep','wheat','ore'],COL=['#e63946','#3b82f6','#f59e0b','#a855f7','#22a06b'];
@@ -281,7 +301,7 @@ const DEFS='<defs>'+Object.entries(C).map(([k,c])=>`<radialGradient id="g${k}"><
 '<linearGradient id=oc x1=0 y1=0 x2=1 y2=1><stop offset=0 stop-color="#27899a"/><stop offset=1 stop-color="#07394a"/></linearGradient><pattern id=wv width=".8" height=".5" patternUnits=userSpaceOnUse><path d="M0 .25Q.2 .1 .4 .25T.8 .25" stroke="#fff" stroke-opacity=".1" stroke-width=".03" fill=none /></pattern><filter id=sh x=-.5 y=-.5 width=2 height=2><feDropShadow dx=0 dy=.04 stdDeviation=.04 flood-opacity=".6"/></filter><filter id=glow x=-1 y=-1 width=3 height=3 color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation=".075" result="blur"/><feFlood flood-color="#ffd76a" flood-opacity=".95" result="gold"/><feComposite in="gold" in2="blur" operator="in" result="halo"/><feMerge><feMergeNode in="halo"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
 const $=id=>document.getElementById(id),rep=(n,x)=>Array(n).fill(x);
 let g,host=false,soloMode=false,peer,conn,conns=[],s=null,mode='r',lastDice='';
-const opts=RES.map(k=>`<option value=${k}>${C[k][0]}</option>`).join('');$('g1').innerHTML=opts;$('g2').innerHTML=opts;$('g2').selectedIndex=3;$('g1').addEventListener('change',()=>{if(s){render();renderShop()}});$('g2').addEventListener('change',()=>{if(s)renderShop()});
+const opts=RES.map(k=>`<option value=${k}>${C[k][0]}</option>`).join('');
 if(location.search.includes('oda='))$('cd').value=new URLSearchParams(location.search).get('oda');
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2200)}
 
@@ -296,7 +316,7 @@ function reset(){
     ? [2,3,3,4,4,4,5,5,5,5,6,6,6,6,8,8,8,8,9,9,9,10,10,10,11,11,12,12]
     : [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12]);
   const old=g?g.players:[];
-  g={phase:'lobby',players:old.map(p=>({...p,res:Object.fromEntries(RES.map(r=>[r,0])),dev:[],devFresh:0,knights:0})),devDeck:sh([...rep(14,'knight'),...rep(5,'vp'),...rep(2,'roads'),...rep(2,'plenty'),...rep(2,'monopoly')]),devPlayed:false,freeRoads:0,pendingDev:null,hexes:[],V:{},E:{},adj:{},turn:0,rolled:false,rob:0,mustRob:false,d:[0,0],si:0,st:'s',order:[],last:null,log:[],win:null,longest:null};
+  g={phase:'lobby',players:old.map(p=>({...p,res:Object.fromEntries(RES.map(r=>[r,0])),dev:[],devFresh:0,knights:0})),devDeck:sh([...rep(14,'knight'),...rep(5,'vp'),...rep(2,'roads'),...rep(2,'plenty'),...rep(2,'monopoly')]),devPlayed:false,freeRoads:0,pendingDev:null,hexes:[],V:{},E:{},adj:{},turn:0,rolled:false,rob:0,mustRob:false,d:[0,0],si:0,st:'s',order:[],last:null,log:[],win:null,longest:null,tradeOffers:[],tradeSeq:0};
   let k=0;
   const coords5=[[1,2,3],[0,1,2,3],[-2,-1,0,1,2],[-3,-2,-1,0,1,2],[-2,-1,0,1,2],[-2,-1,0,1],[-2,-1,0]];
   if(five){for(let ri=0;ri<7;ri++){const r=ri-3;for(const q of coords5[ri]) addHex(q,r);}}
@@ -370,6 +390,8 @@ const L=t=>{g.log.unshift(t);g.log.length=Math.min(g.log.length,9)};
 function checkWin(i){if(vp(i)>=10){g.phase='over';g.win=i;L(g.players[i].name+' 10 puana ulaştı ve kazandı!')}}
 function act(b){
   const me=b.pid,p=g.players[me],t=b.t;
+  if(t==='tradeRespond'){const offer=(g.tradeOffers||[]).find(o=>o.id===b.id&&o.to===me);if(!offer)return{err:'Bu takas teklifi artık geçerli değil.'};g.tradeOffers=g.tradeOffers.filter(o=>o.id!==offer.id);if(!b.accept){L(g.players[me].name+' takas teklifini reddetti.');return{}}const a=g.players[offer.from],z=g.players[offer.to];if(!a||!z||RES.some(r=>(a.res[r]||0)<(offer.give===r?offer.giveN:0))||RES.some(r=>(z.res[r]||0)<(offer.get===r?offer.getN:0)))return{err:'Oyunculardan birinin yeterli kaynağı kalmadı.'};a.res[offer.give]-=offer.giveN;z.res[offer.give]+=offer.giveN;z.res[offer.get]-=offer.getN;a.res[offer.get]+=offer.getN;L(a.name+' ve '+z.name+' takası tamamladı.');return{}}
+  if(t==='tradeOffer'){if(!g.rolled||g.mustRob)return{err:'Takas için önce zarını atıp haydut işlemini bitir.'};if(!Number.isInteger(b.to)||b.to===me||!g.players[b.to])return{err:'Geçerli bir oyuncu seç.'};if(!RES.includes(b.give)||!RES.includes(b.get)||b.give===b.get)return{err:'Farklı iki kaynak seçmelisin.'};const gn=Math.max(1,Math.min(20,Number(b.giveN)||1)),tn=Math.max(1,Math.min(20,Number(b.getN)||1));if((p.res[b.give]||0)<gn)return{err:'Teklif etmek için yeterli kaynağın yok.'};const id=++g.tradeSeq;g.tradeOffers.push({id,from:me,to:b.to,give:b.give,giveN:gn,get:b.get,getN:tn});L(p.name+' '+g.players[b.to].name+' oyuncusuna takas isteği gönderdi.');return{}}
   if(t=='join'){
     if(g.phase!='lobby')return{err:'Oyun başladı'};if(g.players.length>=4)return{err:'Oda dolu (en fazla 4 oyuncu)'};
     const name=String(b.name||'Oyuncu').replace(/[<>&"']/g,'').slice(0,14)||'Oyuncu';
@@ -445,7 +467,8 @@ function act(b){
   if(!g.rolled)return{err:'Önce zar at'};
   if(t=='end'){if(g.freeRoads>0&&g.pendingDev==='roads')return{err:'Yol Yapımı kartının 2 yolunu tamamla.'};g.turn=(g.turn+1)%g.players.length;g.rolled=false;g.players.forEach(pl=>pl.devFresh=0);g.devPlayed=false;g.pendingDev=null;g.freeRoads=0;return{}}
   if(t=='trade'){if(!RES.includes(b.give)||!RES.includes(b.get)||b.give==b.get)return{err:'Geçersiz takas'};
-    const ratio=portRatio(me,b.give);
+    const ratio=b.channel==='bank'?4:portRatio(me,b.give);
+    if(b.channel==='port'&&ratio===4)return{err:'Bu kaynak için kullanabileceğin bir limanın yok.'};
     if(p.res[b.give]<ratio)return{err:`Bu takas için ${ratio} ${C[b.give][0]} kartı lazım`};
     p.res[b.give]-=ratio;p.res[b.get]++;L(`${p.name} ${ratio}:1 liman/banka takası yaptı`);return{}}
   if(t==='buyDev'){
@@ -497,7 +520,7 @@ function hints(i){
     h.as=can(p,COST.settle)?h.s.slice():[];
     if(can(p,COST.city))h.c=V.filter(v=>v.o===i&&!v.c).map(v=>v.id)}
   return h}
-function view(pid){return{me:pid,phase:g.phase,turn:g.turn,rolled:g.rolled,d:g.d,rob:g.rob,mustRob:g.mustRob,st:g.st,si:g.si,np:g.players.length,win:g.win,log:g.log,h:hints(pid),devDeckCount:g.devDeck.length,devPlayed:g.devPlayed,freeRoads:g.freeRoads,pendingDev:g.pendingDev,army:armyHolder(),
+function view(pid){return{me:pid,phase:g.phase,turn:g.turn,rolled:g.rolled,d:g.d,rob:g.rob,mustRob:g.mustRob,st:g.st,si:g.si,np:g.players.length,win:g.win,log:g.log,h:hints(pid),devDeckCount:g.devDeck.length,devPlayed:g.devPlayed,freeRoads:g.freeRoads,pendingDev:g.pendingDev,army:armyHolder(),tradeOffers:(g.tradeOffers||[]).filter(o=>o.to===pid||o.from===pid),
   hexes:g.hexes.map(h=>({x:h.x,y:h.y,res:h.res,num:h.num})),V:Object.values(g.V),
   E:Object.values(g.E).map(e=>({id:e.id,o:e.o,a:e.a,b:e.b,x1:g.V[e.a].x,y1:g.V[e.a].y,x2:g.V[e.b].x,y2:g.V[e.b].y})),
   ports:(g.ports||[]).map(p=>({...p})),
@@ -633,15 +656,31 @@ const pts=(x,y,k=1)=>[0,1,2,3,4,5].map(i=>{const a=Math.PI/3*i-Math.PI/6;return(
 const SP=[[-.5,.45],[.5,.45],[-.5,-.45],[.5,-.45],[0,.7],[0,-.7]];
 function openShop(){const el=$('shopOverlay');if(el){el.hidden=false;renderShop();}}
 function closeShop(){$('shopOverlay').hidden=true;}
-function renderShop(){if(!s)return;const me=s.me,r=s.players[me].res||{},names={wood:'Odun',brick:'Tuğla',sheep:'Koyun',wheat:'Buğday',ore:'Maden'},icons={wood:'🪵',brick:'🧱',sheep:'🐑',wheat:'🌾',ore:'⛰️'};$('shopStock').innerHTML=RES.map(k=>`<div class="shop-resource"><span class="emoji">${icons[k]}</span><b>${names[k]}</b><small>${r[k]||0} adet</small></div>`).join('');const give=$('g1').value||'wood',ratio=shownPortRatio(me,give);$('tradeRate').textContent=`${ratio}:1 takas oranı · ${ratio===2?'Kaynak limanın aktif':ratio===3?'Genel limanın aktif':'Banka takası'}`;$('shopExplain').textContent=`${ratio} adet ${names[give]} vererek 1 adet seçtiğin kaynak alırsın.`;const enough=(r[give]||0)>=ratio;$('shopOverlay').querySelector('.shop-trade-btn').disabled=!enough||give===$('g2').value;$('shopOverlay').querySelector('.shop-trade-btn').style.opacity=(!enough||give===$('g2').value)?'.48':'1';}
+let shopTab='bank',shopGive=null,shopGet='wheat',shopDragKey=null;
+const shopNames={wood:'Odun',brick:'Tuğla',sheep:'Koyun',wheat:'Buğday',ore:'Maden'},shopIcons={wood:'🪵',brick:'🧱',sheep:'🐑',wheat:'🌾',ore:'⛰️'};
+function setShopTab(tab){shopTab=tab;document.querySelectorAll('.shop-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$('shopBankArea').hidden=tab==='player';$('shopPlayerArea').hidden=tab!=='player';renderShop();}
+function shopDragStart(ev,key){shopDragKey=key;ev.dataTransfer.setData('text/plain',key);ev.dataTransfer.effectAllowed='copy';}
+function shopDragOver(ev){ev.preventDefault();ev.currentTarget.classList.add('hot');}
+function shopDragLeave(ev){ev.currentTarget.classList.remove('hot');}
+function shopDropGive(ev){ev.preventDefault();ev.currentTarget.classList.remove('hot');const key=ev.dataTransfer.getData('text/plain')||shopDragKey;if(RES.includes(key)){shopGive=key;renderShop();}}
+function chooseShopGet(key){shopGet=key;renderShop();}
+function confirmShopTrade(){if(!shopGive||!shopGet||shopGive===shopGet)return;send({t:'trade',give:shopGive,get:shopGet,channel:shopTab});}
+function sendPlayerTradeOffer(){send({t:'tradeOffer',to:Number($('shopTarget').value),give:$('shopPlayerGive').value,get:$('shopPlayerGet').value,giveN:Number($('shopGiveN').value),getN:Number($('shopGetN').value)});$('shopOfferStatus').textContent='Teklif gönderildiğinde karşı oyuncunun ekranında bildirim görünecek.';}
+function renderTradeAlert(){if(!s)return;const offers=s.tradeOffers||[],incoming=offers.find(o=>o.to===s.me),alert=$('tradeAlert');if(incoming){const names=shopNames;const from=s.players[incoming.from]?.name||'Bir oyuncu';$('tradeAlertText').textContent=`${from} sana ${incoming.giveN} ${names[incoming.give]} verip karşılığında ${incoming.getN} ${names[incoming.get]} istiyor!`;alert.classList.add('show');$('tradeAccept').onclick=()=>{send({t:'tradeRespond',id:incoming.id,accept:true});alert.classList.remove('show')};$('tradeDecline').onclick=()=>{send({t:'tradeRespond',id:incoming.id,accept:false});alert.classList.remove('show')};}else alert.classList.remove('show');}
+function renderShop(){if(!s)return;const me=s.me,r=s.players[me].res||{};$('shopStock').innerHTML=RES.map(k=>{const count=r[k]||0,ready=shopTab!=='player'&&count>0;return `<div class="shop-resource draggable ${ready?'ready':''}" draggable="${ready}" ondragstart="shopDragStart(event,'${k}')" title="${shopNames[k]} · ${count} adet sürükle"><span class="emoji">${shopIcons[k]}</span><b>${shopNames[k]}</b><small>${count} adet</small></div>`}).join('');
+  $('shopGetGrid').innerHTML=RES.map(k=>`<button class="shop-get ${shopGet===k?'active':''}" onclick="chooseShopGet('${k}')"><span>${shopIcons[k]}</span>${shopNames[k]}</button>`).join('');
+  const give=shopGive,portRate=give?shownPortRatio(me,give):4,ratio=shopTab==='bank'?4:portRate,enough=give&&(r[give]||0)>=ratio,valid=enough&&give!==shopGet;$('shopGiveIcon').textContent=give?shopIcons[give]:'✦';$('shopGiveName').textContent=give?shopNames[give]:'Henüz kaynak seçilmedi';$('shopNeed').textContent=give?`${ratio} KART GEREKLİ`:'KART SÜRÜKLE';$('tradeRate').textContent=`${ratio}:1 TAKAS ORANI · ${shopTab==='bank'?'BANKA TAKASI':ratio===2?'KAYNAK LİMANI':ratio===3?'GENEL LİMAN':'BU KAYNAKTA LİMAN YOK'}`;$('shopExplain').textContent=give?`${ratio} ${shopNames[give]} kartını ver, 1 ${shopNames[shopGet]} al. Elinde ${r[give]||0} adet var.`:'Elindeki kaynak kartlarından birini sürükleyip sol alana bırak. Gerekli kart sayısı burada görünecek.';$('shopBankConfirm').disabled=!valid;
+  const targets=(s.players||[]).map((pl,i)=>({pl,i})).filter(x=>x.i!==me);$('shopTarget').innerHTML=targets.length?targets.map(x=>`<option value="${x.i}">${x.pl.name}</option>`).join(''):'<option value="">Başka oyuncu yok</option>';$('shopPlayerGive').innerHTML=opts;$('shopPlayerGet').innerHTML=opts;$('shopPlayerGet').value='wheat';renderTradeAlert();}
+
 function render(){
   if(!s)return;guide();const me=s.me,P=s.players,lobby=s.phase=='lobby',my=!lobby&&s.turn==me,play=my&&s.phase=='play',cur=P[s.turn],col=o=>P[o].col,m=cm();
+  renderTradeAlert();
   $('st').textContent=lobby?`Lobi: ${P.length}/4 — arkadaşların bağlansın`:s.phase=='over'?`🏆 ${P[s.win].name} kazandı!`:s.phase=='setup'?`${cur.name}: ${s.st==='s'?'ÖNCE KÖYÜNÜ KUR':'ŞİMDİ KÖYÜNE BAĞLI BİR YOL KOY'}`:`${cur.name} oynuyor${s.mustRob?' · haydutu taşı!':''}`;
   $('win').hidden=s.phase!='over';if(s.win!=null)$('wt').textContent='🏆 '+P[s.win].name+' kazandı!';
   $('pl').innerHTML=P.map((p,i)=>`<div class="pl ${!lobby&&i==s.turn?'cur':''}"><i class=dot style="background:${p.col}"></i>${p.name}${i==me?' (sen)':''}${p.hasDice?' 🎲':''}<span>👑 ${p.vp} · 🛣️ ${p.road}${p.longest?' ⭐':''} · 🃏 ${p.n}</span></div>`).join('');
   const r=P[me]&&P[me].res;const total=r?RES.reduce((n,k)=>n+(r[k]||0),0):0;
   $('resourceTotal').textContent=total+' kaynak kartı';
-  $('resourceCards').innerHTML=r?RES.flatMap(k=>rep(Math.max(0,Math.min(30,r[k]||0)),k)).map((k,i)=>`<div class="resource-card" style="--fan:${i}" title="${C[k][0]}"><span class="card-type">KADİFE</span><img src="${RIMG[k]}" alt="${C[k][0]}"><span class="card-name">${C[k][0]}</span></div>`).join(''):'<div class="empty-hand">Kaynak kartların burada görünecek.</div>';
+  $('resourceCards').innerHTML=r?RES.flatMap(k=>rep(Math.max(0,Math.min(30,r[k]||0)),k)).map((k,i)=>`<div class="resource-card" draggable="true" ondragstart="shopDragStart(event,'${k}')" style="--fan:${i}" title="${C[k][0]} · sürükleyerek mağazaya bırak"><span class="card-type">KADİFE</span><img src="${RIMG[k]}" alt="${C[k][0]}"><span class="card-name">${C[k][0]}</span></div>`).join(''):'<div class="empty-hand">Kaynak kartların burada görünecek.</div>';if(!$('shopOverlay').hidden)renderShop();
   const dh=P[me]?.dev||[];
   $('skillCards').innerHTML=dh.length?dh.map((card,i)=>{const d=DEV[card];return `<div class="skill-card ${card==='vp'?'vp':''}"><b>${d.icon} ${d.name}</b><small>${d.desc}</small>${card==='vp'?'<small>Gizli puan · otomatik</small>':`<button ${!my||!play||!s.rolled||s.mustRob||s.devPlayed?'disabled':''} onclick="playDevCard(${i},'${card}')">${s.devPlayed?'Bu tur kullanıldı':'Oyna'}</button>`}</div>`}).join(''):`<div class="skill-empty"><div class="skill-back"><span>✦</span><b>KADİFE</b><small>GELİŞİM</small></div><div class="skill-empty-copy"><b>Henüz gelişim kartın yok</b><small>🐑 + 🌾 + ⛰️ ile desteden alabilirsin.</small></div></div>`;
   $('buyDev').disabled=!(play&&s.rolled&&r&&r.sheep>=1&&r.wheat>=1&&r.ore>=1&&s.devDeckCount>0);
