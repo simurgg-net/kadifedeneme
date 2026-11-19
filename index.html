@@ -208,6 +208,17 @@ button:disabled{opacity:.4}.die-face{background:linear-gradient(145deg,#fff8e7,#
  .shop-swap{width:32px;height:32px;font-size:18px}
 }
 
+
+.shop-need-meter{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:5px}
+.shop-count-pill{font:900 clamp(18px,3vw,27px) Cinzel,serif;color:#fff4bd;background:#071727;border:2px solid #e9c96c;border-radius:12px;padding:7px 15px;box-shadow:0 0 18px #ffd65a55}
+.shop-count-pill.complete{background:#164b3c;border-color:#7cf0b5;color:#caffdf}
+.shop-count-sub{font-size:12px;font-weight:800;color:#d7e6f4}
+.shop-selected-cards{display:flex;justify-content:center;gap:5px;min-height:34px;flex-wrap:wrap}
+.shop-selected-card{width:27px;height:34px;border-radius:5px;border:1px solid #ffe28a;background:linear-gradient(145deg,#f8e6b4,#b58b45);display:grid;place-items:center;color:#352714;font-size:17px;box-shadow:0 0 8px #ffdf77aa}
+.shop-clear{border:1px solid #91a9c0;background:#263d55;color:#eaf4ff;border-radius:7px;padding:5px 10px;font-weight:800;cursor:pointer}
+.port-marker-ring{fill:#10263b;stroke:#ffe18a;stroke-width:.055}
+.port-marker-label{font:900 .105px Cinzel,serif;fill:#fff4cf;letter-spacing:.015px}
+.port-marker-badge{fill:#f8e7bd;stroke:#5d3b20;stroke-width:.035}
 </style>
 <body>
 <div id=toast></div>
@@ -272,7 +283,7 @@ button:disabled{opacity:.4}.die-face{background:linear-gradient(145deg,#fff8e7,#
     <div class="shop-tabs"><button class="shop-tab active" data-tab="bank" onclick="setShopTab('bank')">🏦 BANKA</button><button class="shop-tab" data-tab="port" onclick="setShopTab('port')">⚓ LİMAN</button><button class="shop-tab" data-tab="player" onclick="setShopTab('player')">🤝 OYUNCU TAKASI</button></div>
     <div class="shop-stock"><div class="shop-section-title">ENVANTERİN · SÜRÜKLEYİP BIRAK</div><div id="shopStock" class="shop-stock-grid"></div></div>
     <div id="shopBankArea" class="shop-trade-card"><div class="shop-section-title">TAKAS TEZGAHI</div>
-      <div class="shop-drag-layout"><div id="shopGiveDrop" class="shop-drop" ondragover="shopDragOver(event)" ondragleave="shopDragLeave(event)" ondrop="shopDropGive(event)"><strong>BURAYA KAYNAK KARTINI BIRAK</strong><div id="shopGiveIcon" class="shop-needed">🪵</div><div id="shopNeed" class="shop-needed">4 KART GEREKLİ</div><small id="shopGiveName">Henüz kaynak seçilmedi</small></div>
+      <div class="shop-drag-layout"><div id="shopGiveDrop" class="shop-drop" ondragover="shopDragOver(event)" ondragleave="shopDragLeave(event)" ondrop="shopDropGive(event)"><strong>BURAYA KAYNAK KARTINI BIRAK</strong><div id="shopGiveIcon" class="shop-needed">🪵</div><div class="shop-need-meter"><div id="shopNeed" class="shop-count-pill">0 / 4</div><div id="shopRemaining" class="shop-count-sub">4 kart daha sürükle</div></div><div id="shopSelectedCards" class="shop-selected-cards"></div><small id="shopGiveName">Henüz kaynak seçilmedi</small><button class="shop-clear" onclick="clearShopSelection()">↺ Kartları sıfırla</button></div>
       <div class="shop-drop"><strong>ALACAĞIN KAYNAĞI SEÇ</strong><div class="shop-get-grid" id="shopGetGrid"></div><small>Bir kaynak simgesine dokunarak seç.</small></div></div>
       <div class="shop-rate" id="tradeRate">Banka oranı: 4:1</div><div class="shop-explain" id="shopExplain">Elindeki kartlardan gerekli miktarı sürükle.</div>
       <button id="shopBankConfirm" class="shop-confirm" onclick="confirmShopTrade()" disabled>TAKASI GERÇEKLEŞTİR →</button>
@@ -656,20 +667,22 @@ const pts=(x,y,k=1)=>[0,1,2,3,4,5].map(i=>{const a=Math.PI/3*i-Math.PI/6;return(
 const SP=[[-.5,.45],[.5,.45],[-.5,-.45],[.5,-.45],[0,.7],[0,-.7]];
 function openShop(){const el=$('shopOverlay');if(el){el.hidden=false;renderShop();}}
 function closeShop(){$('shopOverlay').hidden=true;}
-let shopTab='bank',shopGive=null,shopGet='wheat',shopDragKey=null;
+let shopTab='bank',shopGive=null,shopGet='wheat',shopDragKey=null,shopGiveCount=0;
 const shopNames={wood:'Odun',brick:'Tuğla',sheep:'Koyun',wheat:'Buğday',ore:'Maden'},shopIcons={wood:'🪵',brick:'🧱',sheep:'🐑',wheat:'🌾',ore:'⛰️'};
 function setShopTab(tab){shopTab=tab;document.querySelectorAll('.shop-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$('shopBankArea').hidden=tab==='player';$('shopPlayerArea').hidden=tab!=='player';renderShop();}
 function shopDragStart(ev,key){shopDragKey=key;ev.dataTransfer.setData('text/plain',key);ev.dataTransfer.effectAllowed='copy';}
 function shopDragOver(ev){ev.preventDefault();ev.currentTarget.classList.add('hot');}
 function shopDragLeave(ev){ev.currentTarget.classList.remove('hot');}
-function shopDropGive(ev){ev.preventDefault();ev.currentTarget.classList.remove('hot');const key=ev.dataTransfer.getData('text/plain')||shopDragKey;if(RES.includes(key)){shopGive=key;renderShop();}}
+function shopDropGive(ev){ev.preventDefault();ev.currentTarget.classList.remove('hot');const key=ev.dataTransfer.getData('text/plain')||shopDragKey;if(RES.includes(key)){if(shopGive!==key){shopGive=key;shopGiveCount=0;}const me=s?.me,r=s?.players?.[me]?.res||{},ratio=shopTab==='bank'?4:shownPortRatio(me,key);if(shopGiveCount<Math.min(r[key]||0,ratio))shopGiveCount++;renderShop();}} 
+function clearShopSelection(){shopGiveCount=0;renderShop();}
 function chooseShopGet(key){shopGet=key;renderShop();}
-function confirmShopTrade(){if(!shopGive||!shopGet||shopGive===shopGet)return;send({t:'trade',give:shopGive,get:shopGet,channel:shopTab});}
+function confirmShopTrade(){if(!shopGive||!shopGet||shopGive===shopGet)return;const ratio=shopTab==='bank'?4:shownPortRatio(s.me,shopGive);if(shopGiveCount<ratio)return;send({t:'trade',give:shopGive,get:shopGet,channel:shopTab});shopGiveCount=0;}
 function sendPlayerTradeOffer(){send({t:'tradeOffer',to:Number($('shopTarget').value),give:$('shopPlayerGive').value,get:$('shopPlayerGet').value,giveN:Number($('shopGiveN').value),getN:Number($('shopGetN').value)});$('shopOfferStatus').textContent='Teklif gönderildiğinde karşı oyuncunun ekranında bildirim görünecek.';}
 function renderTradeAlert(){if(!s)return;const offers=s.tradeOffers||[],incoming=offers.find(o=>o.to===s.me),alert=$('tradeAlert');if(incoming){const names=shopNames;const from=s.players[incoming.from]?.name||'Bir oyuncu';$('tradeAlertText').textContent=`${from} sana ${incoming.giveN} ${names[incoming.give]} verip karşılığında ${incoming.getN} ${names[incoming.get]} istiyor!`;alert.classList.add('show');$('tradeAccept').onclick=()=>{send({t:'tradeRespond',id:incoming.id,accept:true});alert.classList.remove('show')};$('tradeDecline').onclick=()=>{send({t:'tradeRespond',id:incoming.id,accept:false});alert.classList.remove('show')};}else alert.classList.remove('show');}
-function renderShop(){if(!s)return;const me=s.me,r=s.players[me].res||{};$('shopStock').innerHTML=RES.map(k=>{const count=r[k]||0,ready=shopTab!=='player'&&count>0;return `<div class="shop-resource draggable ${ready?'ready':''}" draggable="${ready}" ondragstart="shopDragStart(event,'${k}')" title="${shopNames[k]} · ${count} adet sürükle"><span class="emoji">${shopIcons[k]}</span><b>${shopNames[k]}</b><small>${count} adet</small></div>`}).join('');
+function renderShop(){if(!s)return;const me=s.me,r=s.players[me].res||{};$('shopStock').innerHTML=RES.map(k=>{const count=r[k]||0,ready=shopTab!=='player'&&count>0;return `<div class="shop-resource draggable ${ready?'ready':''}" draggable="${ready}" ondragstart="shopDragStart(event,'${k}')" title="${shopNames[k]} · ${count} adet; her bırakışta 1 kart eklenir"><span class="emoji">${shopIcons[k]}</span><b>${shopNames[k]}</b><small>${count} adet · sürükle</small></div>`}).join('');
   $('shopGetGrid').innerHTML=RES.map(k=>`<button class="shop-get ${shopGet===k?'active':''}" onclick="chooseShopGet('${k}')"><span>${shopIcons[k]}</span>${shopNames[k]}</button>`).join('');
-  const give=shopGive,portRate=give?shownPortRatio(me,give):4,ratio=shopTab==='bank'?4:portRate,enough=give&&(r[give]||0)>=ratio,valid=enough&&give!==shopGet;$('shopGiveIcon').textContent=give?shopIcons[give]:'✦';$('shopGiveName').textContent=give?shopNames[give]:'Henüz kaynak seçilmedi';$('shopNeed').textContent=give?`${ratio} KART GEREKLİ`:'KART SÜRÜKLE';$('tradeRate').textContent=`${ratio}:1 TAKAS ORANI · ${shopTab==='bank'?'BANKA TAKASI':ratio===2?'KAYNAK LİMANI':ratio===3?'GENEL LİMAN':'BU KAYNAKTA LİMAN YOK'}`;$('shopExplain').textContent=give?`${ratio} ${shopNames[give]} kartını ver, 1 ${shopNames[shopGet]} al. Elinde ${r[give]||0} adet var.`:'Elindeki kaynak kartlarından birini sürükleyip sol alana bırak. Gerekli kart sayısı burada görünecek.';$('shopBankConfirm').disabled=!valid;
+  const give=shopGive,portRate=give?shownPortRatio(me,give):4,ratio=shopTab==='bank'?4:portRate,available=give?(r[give]||0):0,required=give?ratio:4;shopGiveCount=Math.min(shopGiveCount,available,required);const remaining=Math.max(0,required-shopGiveCount),valid=!!give&&shopGiveCount===required&&available>=required&&give!==shopGet;
+  $('shopGiveIcon').textContent=give?shopIcons[give]:'✦';$('shopGiveName').textContent=give?`${shopNames[give]} · envanterinde ${available} kart var`:'Henüz kaynak seçilmedi';$('shopNeed').textContent=`${shopGiveCount} / ${required}`;$('shopNeed').classList.toggle('complete',!!give&&remaining===0);$('shopRemaining').textContent=!give?'Kart sürükleyerek seç':remaining?`${remaining} kart daha sürükle`:'✓ Gerekli kartlar tamamlandı';$('shopSelectedCards').innerHTML=Array.from({length:shopGiveCount},()=>`<span class="shop-selected-card">${shopIcons[give]}</span>`).join('');$('tradeRate').textContent=`${ratio}:1 TAKAS ORANI · ${shopTab==='bank'?'BANKA TAKASI':ratio===2?'KAYNAK LİMANI':ratio===3?'GENEL LİMAN':'BU KAYNAKTA LİMAN YOK'}`;$('shopExplain').textContent=give?`${required} ${shopNames[give]} kartı gerekiyor. ${shopGiveCount} kart seçtin, ${remaining} kart kaldı. Elindeki toplam: ${available}.`:'Elindeki kaynak kartlarını birer birer sürükleyip alana bırak. Her bırakış 1 kart sayılır.';$('shopBankConfirm').disabled=!valid;
   const targets=(s.players||[]).map((pl,i)=>({pl,i})).filter(x=>x.i!==me);$('shopTarget').innerHTML=targets.length?targets.map(x=>`<option value="${x.i}">${x.pl.name}</option>`).join(''):'<option value="">Başka oyuncu yok</option>';$('shopPlayerGive').innerHTML=opts;$('shopPlayerGet').innerHTML=opts;$('shopPlayerGet').value='wheat';renderTradeAlert();}
 
 function render(){
@@ -705,7 +718,7 @@ function render(){
     SP.map(([x,y])=>`<use href="#i${h.res}" x="${h.x+x}" y="${h.y+y}"/>`).join('')+
     (h.num?`<circle cx="${h.x}" cy="${h.y}" r=".31" fill="#f3e6c4" stroke="#7a5b2b" stroke-width=".03" filter="url(#sh)"/><text x="${h.x}" y="${h.y+.06}" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size=".3" fill="${h.num==6||h.num==8?'#b3261e':'#2b2b2b'}">${h.num}</text><text x="${h.x}" y="${h.y+.24}" text-anchor="middle" font-size=".2" fill="${h.num==6||h.num==8?'#b3261e':'#555'}">${'•'.repeat(6-Math.abs(7-h.num))}</text>`:'')+'</g>').join('')+
   `<g transform="translate(${s.hexes[s.rob].x+.38},${s.hexes[s.rob].y-.2})" filter="url(#sh)"><path d="M-.12.2Q-.1-.05 0-.05Q.1-.05 .12.2Z" fill="#1a1a1a" stroke="#fff4" stroke-width=".02"/><circle cy="-.13" r=".08" fill="#1a1a1a"/></g>`+
-     (s.ports||[]).map(p=>{const labels={any:'⚓ 3:1',wood:'🪵 2:1',brick:'🧱 2:1',sheep:'🐑 2:1',wheat:'🌾 2:1',ore:'⛰️ 2:1'};return `<g transform="translate(${p.x},${p.y})" filter="url(#sh)" pointer-events="none"><rect x="-.34" y="-.14" width=".68" height=".28" rx=".08" fill="#f5e5c2" stroke="#684522" stroke-width=".035"/><text x="0" y=".055" text-anchor="middle" font-size=".145" font-weight="800" fill="#49301c">${labels[p.type]}</text></g>`}).join('')+
+     (s.ports||[]).map((p,i)=>{const labels={any:'⚓ 3:1',wood:'🪵 2:1',brick:'🧱 2:1',sheep:'🐑 2:1',wheat:'🌾 2:1',ore:'⛰️ 2:1'};return `<g transform="translate(${p.x},${p.y})" filter="url(#sh)" pointer-events="none"><circle class="port-marker-ring" r=".31"/><rect class="port-marker-badge" x="-.29" y="-.115" width=".58" height=".23" rx=".065"/><text x="0" y=".052" text-anchor="middle" font-size=".16" font-weight="900" fill="#49301c">${labels[p.type]}</text><text class="port-marker-label" x="0" y=".405" text-anchor="middle">LİMAN ${i+1}</text></g>`}).join('')+
      s.E.map(e=>{const dx=e.x2-e.x1,dy=e.y2-e.y1,a=[e.x1+dx*.14,e.y1+dy*.14],b=[e.x1+dx*.86,e.y1+dy*.86],ln=(w,c,x='')=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${x}/>`;
      const legal=e.o===null&&s.h&&(s.h.r||[]).includes(e.id);
      const affordable=legal&&s.phase==='play'&&(s.h.ar||[]).includes(e.id);
