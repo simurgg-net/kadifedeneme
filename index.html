@@ -533,7 +533,11 @@ function render(){
      s.E.map(e=>{const dx=e.x2-e.x1,dy=e.y2-e.y1,a=[e.x1+dx*.14,e.y1+dy*.14],b=[e.x1+dx*.86,e.y1+dy*.86],ln=(w,c,x='')=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${x}/>`;
      const legal=e.o===null&&s.h&&(s.h.r||[]).includes(e.id);
      const affordable=legal&&s.phase==='play'&&(s.h.ar||[]).includes(e.id);
-     return e.o!=null?ln(.22,'#382312')+ln(.15,col(e.o)):(legal?(affordable?ln(.24,'#168cff','class=roadPulse')+ln(.18,'#ffd76a','class=glow')+ln(.075,'#fff4cf'):ln(.18,'#168cff','class=roadPulse')+ln(.075,'#bfe4ff','stroke-dasharray=.07 .055')):'')}).join('')+
+     if(e.o!=null)return ln(.22,'#382312')+ln(.15,col(e.o));
+     if(!legal)return '';
+     // SMIL animasyonu her uygun kenarda ayrı çalışır; CSS sınıfına/tek elemana bağlı kalmaz.
+     const pulse=`<animate attributeName="opacity" values=".28;1;.28" dur="1.15s" repeatCount="indefinite"/>`;
+     return `<g>${ln(.25,'#168cff')}${ln(.18,affordable?'#ffd76a':'#bfe4ff',affordable?'':'stroke-dasharray=.07 .055')}${pulse}</g>`}).join('')+
    edgeHits()+
    s.V.map(v=>{const c=v.o!=null?col(v.o):'';let d='';
      if(v.o!=null){
@@ -544,7 +548,9 @@ function render(){
      const legalVillage=s.phase==='play'&&s.h.s&&s.h.s.includes(v.id);
      const passive=legalVillage&&!(s.h.as||[]).includes(v.id);
      const hl=active?`<circle class="glow" cx="${v.x}" cy="${v.y}" r=".39" fill="#ffd76a" fill-opacity=".28" stroke="#fff0a8" stroke-width=".09"/><circle cx="${v.x}" cy="${v.y}" r=".27" fill="none" stroke="#fff9df" stroke-width=".045" stroke-dasharray=".07 .045"/>`:passive?`<circle cx="${v.x}" cy="${v.y}" r=".34" fill="#168cff" fill-opacity=".22" stroke="#80caff" stroke-width=".075" stroke-dasharray=".065 .045"/>`:'';
-     return`<g class=k data-hit="vertex" data-id="${v.id}" style="pointer-events:all;cursor:pointer">${hl}${d}<circle cx="${v.x}" cy="${v.y}" r=".31" fill="transparent" pointer-events="all"/></g>`}).join('')}
+     return`<g class=k data-hit="vertex" data-id="${v.id}" style="pointer-events:all;cursor:pointer">${hl}${d}<circle cx="${v.x}" cy="${v.y}" r=".31" fill="transparent" pointer-events="all"/></g>`}).join('')+
+   // Yerleştirilmiş köy/şehir tüm hedef ve yol çizimlerinin üstünde de görünür kalır.
+   (s.phase==='setup'?s.V.filter(v=>v.o!=null).map(v=>`<circle cx="${v.x}" cy="${v.y}" r=".39" fill="#fff0b0" fill-opacity=".10" stroke="#fff0b0" stroke-width=".055" pointer-events="none"/>` ).join(''):'')}
 function edgeHits(){return s.E.filter(e=>e.o===null&&s.h&&(s.h.ar||s.h.r||[]).includes(e.id)).map(e=>{const dx=e.x2-e.x1,dy=e.y2-e.y1;return`<line class=k x1="${e.x1+dx*.22}" y1="${e.y1+dy*.22}" x2="${e.x1+dx*.78}" y2="${e.y1+dy*.78}" stroke="transparent" stroke-width=".72" pointer-events="stroke" data-hit="edge" data-id="${e.id}"/>`}).join('')}
 function guide(){
   const me=s.me,P=s.players,cur=P[s.turn],my=s.turn==me,h=s.h,box=$('guide');let t;
