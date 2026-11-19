@@ -159,7 +159,7 @@ button:disabled{opacity:.4}.die-face{background:linear-gradient(145deg,#fff8e7,#
   <p class="lobby-intro">Kaynaklarını topla, yollarını kur ve adanın hâkimi ol.</p>
   <label class="lobby-label" for=nm>OYUNCU ADI</label><input id=nm placeholder="Adını yaz..." maxlength=14>
   <label class="dice-choice"><input id=hasDice type=checkbox> Fiziksel zar kullanacağım</label>
-  <div class="lobby-actions"><button class="lobby-primary" onclick="startHost()">✦ Yeni Oda Kur</button>
+  <div class="lobby-actions"><button class="lobby-primary" onclick="startHost()">✦ Yeni Oda Kur</button><button class="lobby-secondary" style="margin-top:9px" onclick="startSolo()">🎮 Tek başıma dene</button>
   <div class="lobby-divider"><span>VEYA</span></div>
   <label class="lobby-label" for=cd>ODA KODU</label><input id=cd placeholder="Örn. A1B2C3" maxlength=8>
   <button class="lobby-secondary" onclick="joinRoom()">Odaya Katıl <span>→</span></button></div>
@@ -240,7 +240,7 @@ desert:'<path d="M-.2.1Q-.1-.05 0 .1T.2.1" stroke="#b08a45" stroke-width=".03" f
 const DEFS='<defs>'+Object.entries(C).map(([k,c])=>`<radialGradient id="g${k}"><stop offset="0" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></radialGradient><g id="i${k}">${ICON[k]}</g>`).join('')+
 '<linearGradient id=oc x1=0 y1=0 x2=1 y2=1><stop offset=0 stop-color="#27899a"/><stop offset=1 stop-color="#07394a"/></linearGradient><pattern id=wv width=".8" height=".5" patternUnits=userSpaceOnUse><path d="M0 .25Q.2 .1 .4 .25T.8 .25" stroke="#fff" stroke-opacity=".1" stroke-width=".03" fill=none /></pattern><filter id=sh x=-.5 y=-.5 width=2 height=2><feDropShadow dx=0 dy=.04 stdDeviation=.04 flood-opacity=".6"/></filter><filter id=glow x=-1 y=-1 width=3 height=3 color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation=".075" result="blur"/><feFlood flood-color="#ffd76a" flood-opacity=".95" result="gold"/><feComposite in="gold" in2="blur" operator="in" result="halo"/><feMerge><feMergeNode in="halo"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
 const $=id=>document.getElementById(id),rep=(n,x)=>Array(n).fill(x);
-let g,host=false,peer,conn,conns=[],s=null,mode='r',lastDice='';
+let g,host=false,soloMode=false,peer,conn,conns=[],s=null,mode='r',lastDice='';
 const opts=RES.map(k=>`<option value=${k}>${C[k][0]}</option>`).join('');$('g1').innerHTML=opts;$('g2').innerHTML=opts;$('g2').selectedIndex=3;$('g1').addEventListener('change',()=>{if(s){render();renderShop()}});$('g2').addEventListener('change',()=>{if(s)renderShop()});
 if(location.search.includes('oda='))$('cd').value=new URLSearchParams(location.search).get('oda');
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2200)}
@@ -336,7 +336,7 @@ function act(b){
     g.players.push({name,col:COL[g.players.length],hasDice:!!b.hasDice,res:Object.fromEntries(RES.map(r=>[r,0])),dev:[],devFresh:0,knights:0});L(name+' katıldı');return{pid:g.players.length-1}}
   if(t=='reset'){if(g.phase=='over')reset();return{}}
   if(!p)return{err:'Oyuncu değilsin'};
-  if(t=='start'){if(g.phase!='lobby'||g.players.length<2)return{err:'En az 2 oyuncu lazım'};
+  if(t=='start'){if(g.phase!='lobby'||g.players.length<(soloMode?1:2))return{err:'En az 2 oyuncu lazım'};
     const o=[...g.players.keys()];g.order=o.concat([...o].reverse());g.phase='setup';g.turn=g.order[0];L('Başlangıç: sırayla köy + yol');return{}}
   if(g.phase=='over'||g.phase=='lobby')return{err:'Şu an olmaz'};
   if(g.turn!==me)return{err:'Sıra sende değil'};
@@ -470,7 +470,7 @@ function startHost(){
   const name=$('nm').value.trim()||'Oyuncu',code=Math.random().toString(36).slice(2,8).toUpperCase();
   if(typeof Peer!=='function'){toast('Çevrim içi bağlantı kütüphanesi yüklenemedi. Sayfayı yenile.');return}
   // PeerJS kimliği yalnızca harf/rakam içersin; oda kodu ayrı gösterilir.
-  peer=new Peer('kadife'+code,{debug:1});
+  soloMode=false;peer=new Peer('kadife'+code,{debug:1});
   peer.on('open',()=>{host=true;reset();act({t:'join',name,hasDice:$('hasDice').checked});$('lobby').hidden=true;
     const url=location.origin+location.pathname+'?oda='+code;
     $('room').innerHTML=`Oda kodu: <b style="font:800 20px Cinzel;color:#f2c94c">${code}</b> <button onclick="navigator.clipboard.writeText('${url}');toast('Bağlantı kopyalandı')">🔗 Davet linki</button>`;bc()});
@@ -484,6 +484,17 @@ function startHost(){
       if(d.t=='join'){const sp=g.players[d.sp];if(sp&&sp.name==d.name)c.pid=d.sp;else{const r=act(d);if(r.err)c.send({err:r.err});else c.pid=r.pid}}
       else{d.pid=c.pid;const r=act(d);if(r.err)c.send({err:r.err})}bc()});
     c.on('close',()=>{conns=conns.filter(x=>x!==c)})})}
+function startSolo(){
+  const name=$('nm').value.trim()||'Oyuncu';
+  // Yerel tek oyunculu deneme: ağ bağlantısı gerekmez.
+  host=true;soloMode=true;peer=null;conn=null;conns=[];reset();
+  act({t:'join',pid:0,name,hasDice:$('hasDice').checked});
+  const r=act({t:'start',pid:0});
+  if(r.err){toast(r.err);return}
+  $('lobby').hidden=true;
+  $('room').innerHTML='<b style="color:#f2c94c">🎮 Tek Oyunculu Deneme</b><div style="font-size:12px;margin-top:5px">Yerel oyun · İnternet/oda gerekmez</div>';
+  bc();
+}
 function joinRoom(){
   const name=$('nm').value.trim()||'Oyuncu',code=$('cd').value.trim().toUpperCase();if(!code)return toast('Oda kodunu yaz');
   peer=new Peer();peer.on('error',e=>toast(e.type=='peer-unavailable'?'Oda bulunamadı':'Hata: '+e.type));
